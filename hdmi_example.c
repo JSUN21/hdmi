@@ -51,14 +51,14 @@
 #include "xil_types.h"
 #include "xil_cache.h"
 #include "xparameters.h"
-#include "xgpio.h"
+#include "xgpio.h" //botones,switches,leds y demas
 #include "xstatus.h"
 #include "sleep.h"
-#include "zybo_z7_hdmi/display_ctrl.h"
+#include "zybo_z7_hdmi/display_ctrl.h" //controladores diligent
 
 // Frame size (based on 1440x900 resolution, 32 bits per pixel)
 #define MAX_FRAME (1440*900)
-#define FRAME_STRIDE (1440*4)
+#define FRAME_STRIDE (1440*4)// resolution
 
 DisplayCtrl dispCtrl; // Display driver struct
 u32 frameBuf[DISPLAY_NUM_FRAMES][MAX_FRAME] __attribute__((aligned(0x20))); // Frame buffers for video data
@@ -69,7 +69,7 @@ int main()
 {
 
 
-    init_platform();
+    init_platform();//inicia hardware gpio y uart
 
     print("Hello World\n\r");
 
@@ -102,9 +102,9 @@ int main()
     	int x, y; //bullet 1 player 1
     	int x_aux, y_aux; //player1
 
-    	int x_cubo,y_cubo;
+    	int x_cubo,y_cubo; // es el target donde debe caer la bullet
 
-        int p1_b1;
+        int p1_b1; // bullet player 1
 
 
 
@@ -114,6 +114,8 @@ int main()
     	u32 width = dispCtrl.vMode.width;
     	u32 height = dispCtrl.vMode.height;
 
+	
+	//son los frames de cada imagen
 
 
     	u32 *frame;
@@ -125,7 +127,7 @@ int main()
         u32 buff = dispCtrl.curFrame;
 
 
-        // player 1 bullet 1
+        // player 1 bullet 1 posiciones iniciales
     	int right = 1;
     	int down = 1;
     	int xpos = 0;
@@ -163,12 +165,12 @@ int main()
 
 
 
-
+      //botones,switches(dip),leds uso gneral
 
     	    		XGpio led,btn,dip;
     	    		int btn_check,dip_check;//dip_check;
 
-    	    		XGpio_Initialize(&btn,XPAR_AXI_GPIO_0_DEVICE_ID);
+    	    		XGpio_Initialize(&btn,XPAR_AXI_GPIO_0_DEVICE_ID); /// se inicializan como puertos de input o output
     	    		XGpio_SetDataDirection(&btn,1,0xffffffff);
 
     	    		XGpio_Initialize(&dip,XPAR_AXI_GPIO_1_DEVICE_ID);
@@ -194,7 +196,7 @@ int main()
 
 
 
-    	    		btn_check =XGpio_DiscreteRead(&btn,1);
+    	    		btn_check =XGpio_DiscreteRead(&btn,1); // esta variable es para leer
     	    		dip_check =XGpio_DiscreteRead(&dip,1);
 
     	    		//xil_printf("btn switch status %x\r\n",btn_check);
@@ -214,7 +216,7 @@ int main()
 
 
     			// Clear the entire frame to white (inefficient, but it works)
-    			memset(frame, 0xEF, MAX_FRAME*4);
+    			memset(frame, 0xEF, MAX_FRAME*4); // esto es en memoria, si lo quitan no hay imagen
     			memset(frame_aux, 0x70, MAX_FRAME*4);
     			memset(cubo,0x70,MAX_FRAME*4);
 
@@ -226,14 +228,14 @@ int main()
 
     			// Adjust the position of bullets
 
-    			if (btn_check==2 ||  p1_b1==1 ){
+    			if (btn_check==2 ||  p1_b1==1 ){ //solo cuando se presione el boton 2 aparecera la bullet y se quedara asi
 
     				p1_b1=1;
 
 
-    				if (dip_check==1){
+    				if (dip_check==1){ //con este dip, el cubo rebota a la izquierda
 
-    				if (right) {
+    				if (right) {// describir como se mueve
     								xpos++;
     								xpos++;
     								if ((xpos == width-64)  || (ypos==ypos_aux))
@@ -267,7 +269,7 @@ int main()
 
     				}// end dip 1
 
-    				if (dip_check==8){
+    				if (dip_check==8){//con ese dip switch rebota derecha
 
     				    				if (right) {
     				    								xpos++;
@@ -312,14 +314,14 @@ int main()
     				    				}// end dip 2
 
 
-    							// Draw black square on the screen
+    							// Draw black square on the screen // se dibuja el tamaño y color de la figura,
     							for (x = xpos; x < xpos+64; x++) {
     								for (y = ypos; y < ypos+64; y++) {
-    									frame[y*stride + x] = 0;
+    									frame[y*stride + x] = 0; //color negro
     								}
     							}
 
-
+             // el cubo es el target donde debe llegar la bullet de color negra, este cubo es verde de mismo tamaño y se mueve en diagonal en sentido hacia la izquiera
     							//movimiento cubo
     							if(cubo_right){
     								xpos_cubo++;
@@ -355,7 +357,7 @@ int main()
 										                cubo_up=1;
 																		}
     							}
-
+// cuando la posicion de la bullet y el cubo target son iguales empieza a desaparecer  y se queda en la bullet en la posiicon del cubo
 
 	if (  ( (xpos==xpos_cubo) && (ypos==ypos_cubo) )  || ( (ypos==400)&&(xpos==1200) )  || ( (ypos==600)&&(xpos==1200) ) || ( (ypos==300)&&(xpos==1200) ) || ( (ypos==700)&&(xpos==1200) )||( (ypos==500)&&(xpos==1100) )  ||( (ypos==500)&&(xpos==1300) ) ||( (ypos==500)&&(xpos==1000) )||( (ypos==500)&&(xpos==1400) )    ) {
     			    								xpos=xpos_cubo;
@@ -370,16 +372,16 @@ int main()
 
 
 
-    								    // player's  red rectangule
+    								    // player's  red rectangule , es lo que mueve el usuario
 
-    									if ( ( btn_check==1)  ) {
+    									if ( ( btn_check==1)  ) { // describe movimiento
     								    				xpos_aux++;
     								    				xpos_aux++;
-    								    				xpos_aux++;
+    								    				xpos_aux++;//velocidad
 
 
 
-    								    				if (xpos_aux == width-64){
+    								    				if (xpos_aux == width-64){// cuando alcanza borde regresa
     								    					xpos_aux--;
 
 
@@ -405,7 +407,7 @@ int main()
     			for (x_aux = xpos_aux; x_aux < xpos_aux+64; x_aux++) {
     				for (y_aux = ypos_aux; y_aux < ypos_aux+64; y_aux++) {
     					red = (y_aux*0xFF) / ypos_aux+64;
-    					frame_aux[y_aux*stride + x_aux] = (red << BIT_DISPLAY_RED);
+    					frame_aux[y_aux*stride + x_aux] = (red << BIT_DISPLAY_RED); //dibuja el cuadro del usuario, color rojo
     				}
     			}
 
@@ -414,7 +416,7 @@ int main()
     			for (x_cubo = xpos_cubo; x_cubo < xpos_cubo+64; x_cubo++) {
     			    				for (y_cubo = ypos_cubo; y_cubo < ypos_cubo+64; y_cubo++) {
     			    					green = ((x*0xFF) / xpos+94);
-    			    					cubo[y_cubo*stride + x_cubo] = (green << BIT_DISPLAY_GREEN);
+    			    					cubo[y_cubo*stride + x_cubo] = (green << BIT_DISPLAY_GREEN);//dibuja cuadro target color verde
     			    				}
     			    			}
 
